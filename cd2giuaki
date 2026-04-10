@@ -12,8 +12,8 @@ class ReminderApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Reminder App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.grey[200],
+        useMaterial3: true,
+        colorSchemeSeed: Colors.blue,
       ),
       home: TaskListScreen(),
     );
@@ -60,44 +60,71 @@ class _TaskListScreenState extends State<TaskListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Danh sách công việc')),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: tasks.isEmpty
-            ? Center(child: Text('Chưa có công việc'))
-            : ListView.builder(
-                itemCount: tasks.length,
-                itemBuilder: (_, i) {
-                  final t = tasks[i];
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 10),
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 4)
-                      ],
+      appBar: AppBar(
+        title: Text('📋 Công việc của bạn'),
+        centerTitle: true,
+      ),
+      body: tasks.isEmpty
+          ? Center(
+              child: Text(
+                'Chưa có công việc',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            )
+          : ListView.builder(
+              padding: EdgeInsets.all(12),
+              itemCount: tasks.length,
+              itemBuilder: (_, i) {
+                final t = tasks[i];
+                return Card(
+                  elevation: 4,
+                  margin: EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.all(16),
+                    leading: CircleAvatar(
+                      child: Icon(Icons.task),
                     ),
-                    child: Column(
+                    title: Text(t.title,
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(t.title,
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 5),
-                        Text(DateFormat('dd/MM/yyyy HH:mm').format(t.time)),
-                        Text(t.location),
-                        Text(t.remind ? 'Nhắc: ${t.type}' : 'Không nhắc'),
+                        SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(Icons.access_time, size: 16),
+                            SizedBox(width: 5),
+                            Text(DateFormat('dd/MM/yyyy HH:mm')
+                                .format(t.time)),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 16),
+                            SizedBox(width: 5),
+                            Text(t.location),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Icon(Icons.notifications, size: 16),
+                            SizedBox(width: 5),
+                            Text(t.remind ? t.type : 'Không nhắc'),
+                          ],
+                        ),
                       ],
                     ),
-                  );
-                },
-              ),
-      ),
-      floatingActionButton: FloatingActionButton(
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: openAdd,
-        child: Icon(Icons.add),
+        icon: Icon(Icons.add),
+        label: Text('Thêm'),
       ),
     );
   }
@@ -153,88 +180,84 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     Navigator.pop(context);
   }
 
-  inputBox(String label, Widget child) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black45),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 5),
-          child,
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Thêm công việc')),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
+      appBar: AppBar(title: Text('➕ Thêm công việc')),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            inputBox(
-                'Tên công việc',
-                TextField(
-                  controller: title,
-                  decoration: InputDecoration(border: InputBorder.none),
-                )),
-            inputBox(
-                'Thời gian',
-                Row(
+            TextField(
+              controller: title,
+              decoration: InputDecoration(
+                labelText: 'Tên công việc',
+                prefixIcon: Icon(Icons.task),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            SizedBox(height: 12),
+            GestureDetector(
+              onTap: pickTime,
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(time == null
-                        ? '//'
-                        : DateFormat('dd/MM HH:mm').format(time!)),
-                    IconButton(
-                        onPressed: pickTime,
-                        icon: Icon(Icons.calendar_today))
+                        ? 'Chọn thời gian'
+                        : DateFormat('dd/MM/yyyy HH:mm')
+                            .format(time!)),
+                    Icon(Icons.calendar_today)
                   ],
-                )),
-            inputBox(
-                'Địa điểm',
-                TextField(
-                  controller: location,
-                  decoration: InputDecoration(border: InputBorder.none),
-                )),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Nhắc việc trước 1 ngày'),
-                Switch(
-                  value: remind,
-                  onChanged: (v) => setState(() => remind = v),
-                )
-              ],
+                ),
+              ),
             ),
-
+            SizedBox(height: 12),
+            TextField(
+              controller: location,
+              decoration: InputDecoration(
+                labelText: 'Địa điểm',
+                prefixIcon: Icon(Icons.location_on),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            SwitchListTile(
+              title: Text('Nhắc việc'),
+              secondary: Icon(Icons.notifications),
+              value: remind,
+              onChanged: (v) => setState(() => remind = v),
+            ),
             if (remind)
-              inputBox(
-                  'Kiểu nhắc',
-                  Column(
-                    children: ['Chuông', 'Email', 'Thông báo']
-                        .map((e) => RadioListTile(
-                              value: e,
-                              groupValue: type,
-                              title: Text(e),
-                              onChanged: (v) => setState(() => type = v!),
-                            ))
-                        .toList(),
-                  )),
-
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: save,
-              child: Text('Ghi lại công việc'),
+              Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: Column(
+                  children: ['Chuông', 'Email', 'Thông báo']
+                      .map((e) => RadioListTile(
+                            value: e,
+                            groupValue: type,
+                            title: Text(e),
+                            onChanged: (v) => setState(() => type = v!),
+                          ))
+                      .toList(),
+                ),
+              ),
+            SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 14)),
+                onPressed: save,
+                child: Text('Ghi lại công việc'),
+              ),
             )
           ],
         ),
